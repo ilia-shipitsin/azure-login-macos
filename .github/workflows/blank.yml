@@ -1,0 +1,41 @@
+on: [ push, workflow_dispatch ]
+defaults:
+  run:
+    shell: pwsh
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    environment: azure-login-macos
+    env:
+      ACTIONS_RUNNER_DEBUG: true
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ 'windows-latest', 'ubuntu-latest', 'macos-13', 'macos-12', 'macos-11' ]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: az version
+        run: |
+          az --version
+
+      - name: pwsh modules
+        run: |
+          Get-Module -ListAvailable
+        shell: pwsh
+
+      - name: OIDC Login to Azure Public Cloud with AzPowershell
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          enable-AzPSSession: true
+
+
